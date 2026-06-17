@@ -1,19 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>HP Subway Run</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>HP Subway Run</h1>
+<div id="startScreen">
+    <h1>🏃 HP Subway Run</h1>
+    <button id="startBtn">Start Game</button>
+</div>
 
-<canvas id="gameCanvas" width="400" height="600"></canvas>
+<div id="gameContainer">
 
-<div class="controls">
-    <button onclick="moveLeft()">⬅</button>
-    <button onclick="jump()">⬆ Jump</button>
-    <button onclick="moveRight()">➡</button>
+    <div id="hud">
+        <span>Score: <span id="score">0</span></span>
+        <span>Coins: <span id="coins">0</span></span>
+        <span>High Score: <span id="highScore">0</span></span>
+    </div>
+
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+    <div class="controls">
+        <button onclick="moveLeft()">⬅</button>
+        <button onclick="jump()">⬆</button>
+        <button onclick="moveRight()">➡</button>
+    </div>
+
+</div>
+
+<div id="gameOverScreen">
+    <h1>Game Over</h1>
+    <h2>Your Score: <span id="finalScore"></span></h2>
+
+    <button onclick="restartGame()">Play Again</button>
 </div>
 
 <script src="script.js"></script>
