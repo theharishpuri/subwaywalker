@@ -1,3 +1,7 @@
+const jumpSound = new Audio("assets/sounds/jump.mp3");
+const coinSound = new Audio("assets/sounds/coin.mp3");
+const hitSound = new Audio("assets/sounds/hit.mp3");
+const gameOverSound = new Audio("assets/sounds/gameover.mp3");
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
