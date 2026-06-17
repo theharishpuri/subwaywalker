@@ -1,3 +1,14 @@
+const playerImg = new Image();
+playerImg.src = "assets/player.png";
+
+const trainImg = new Image();
+trainImg.src = "assets/train.png";
+
+const barrierImg = new Image();
+barrierImg.src = "assets/barrier.png";
+
+const coinImg = new Image();
+coinImg.src = "assets/coin.png";
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 let speed = 7;
