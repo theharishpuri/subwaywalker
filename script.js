@@ -143,7 +143,7 @@ function update(){
 
     obstacles.forEach(obs=>{
 
-        obs.y+=7;
+       obs.y += speed;
 
         if(
             player.x<obs.x+obs.width &&
@@ -151,7 +151,14 @@ function update(){
             player.y<obs.y+obs.height &&
             player.y+player.height>obs.y
         ){
-            gameOver();
+           lives--;
+livesText.innerText = lives;
+
+obs.y = 700;
+
+if(lives <= 0){
+    gameOver();
+}
         }
 
         if(obs.y>600){
@@ -162,7 +169,7 @@ function update(){
 
     coinList.forEach(c=>{
 
-        c.y+=7;
+     c.y += speed;
 
         let dx=(player.x+25)-c.x;
         let dy=(player.y+40)-c.y;
@@ -176,7 +183,27 @@ function update(){
 }
 
 function draw(){
+roadOffset += speed;
 
+ctx.fillStyle = "#444";
+ctx.fillRect(0,0,400,600);
+
+ctx.strokeStyle = "white";
+ctx.lineWidth = 4;
+
+for(let y=-40; y<600; y+=60){
+
+    ctx.beginPath();
+    ctx.moveTo(130,y+(roadOffset%60));
+    ctx.lineTo(130,y+30+(roadOffset%60));
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(260,y+(roadOffset%60));
+    ctx.lineTo(260,y+30+(roadOffset%60));
+    ctx.stroke();
+
+}
     ctx.clearRect(0,0,400,600);
 
     ctx.fillStyle="#666";
