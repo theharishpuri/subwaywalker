@@ -17,7 +17,7 @@ const coinImg = new Image();
 coinImg.src = "assets/coin.png";
 
 /* =====================
-   SOUND
+   AUDIO (optional hooks)
 ===================== */
 const bgMusic = new Audio("sounds/bg.mp3");
 bgMusic.loop = true;
@@ -39,8 +39,19 @@ let paused = false;
 let score = 0;
 let coins = 0;
 let lives = 3;
+
 let speed = 7;
 
+/* CAMERA SHAKE */
+let shake = 0;
+
+/* DAY/NIGHT CYCLE */
+let time = 0;
+
+/* ANIMATION */
+let anim = 0;
+
+/* HIGH SCORE */
 let highScore = localStorage.getItem("hs") || 0;
 highScoreText.innerText = highScore;
 
@@ -60,9 +71,7 @@ const player = {
     h: 80,
     vy: 0,
     jump: false,
-    slide: false,
-    normalH: 80,
-    slideH: 40
+    slide: false
 };
 
 /* =====================
@@ -70,10 +79,19 @@ const player = {
 ===================== */
 let obs = [];
 let coinList = [];
+let particles = [];
 
 /* =====================
    SPAWN
 ===================== */
+setInterval(() => {
+    if (gameRunning) spawn();
+}, 1400);
+
+setInterval(() => {
+    if (gameRunning) spawnCoin();
+}, 1100);
+
 function spawn() {
     let t = Math.random() < 0.5 ? "train" : "barrier";
 
@@ -93,14 +111,6 @@ function spawnCoin() {
         r: 15
     });
 }
-
-setInterval(() => {
-    if (gameRunning) spawn();
-}, 1400);
-
-setInterval(() => {
-    if (gameRunning) spawnCoin();
-}, 1100);
 
 /* =====================
    CONTROLS
@@ -128,44 +138,33 @@ function jump() {
 
 function slide() {
     if (player.slide) return;
-
     player.slide = true;
-    player.h = player.slideH;
-    player.y = 540;
+    player.h = 40;
 
     setTimeout(() => {
-        player.h = player.normalH;
-        player.y = 500;
+        player.h = 80;
         player.slide = false;
     }, 600);
 }
 
 /* =====================
-   KEYBOARD FIX (IMPORTANT)
+   KEYBOARD (FIXED)
 ===================== */
-document.addEventListener("keydown", (e) => {
-
+document.addEventListener("keydown", e => {
     if (e.key === "ArrowLeft") moveLeft();
-
     if (e.key === "ArrowRight") moveRight();
-
     if (e.key === "ArrowUp") jump();
-
     if (e.key === "ArrowDown") slide();
-
-    if (e.key === "p" || e.key === "P") {
-        paused = !paused;
-    }
+    if (e.key === "p") paused = !paused;
 });
 
 /* =====================
-   START GAME
+   START
 ===================== */
 document.getElementById("startBtn").onclick = () => {
     document.getElementById("startScreen").style.display = "none";
     document.getElementById("gameContainer").style.display = "block";
     gameRunning = true;
-
     bgMusic.play();
 };
 
@@ -186,8 +185,23 @@ function gameOver() {
     }
 }
 
-function restartGame() {
-    location.reload();
+/* =====================
+   CAMERA SHAKE
+===================== */
+function addShake() {
+    shake = 10;
+}
+
+/* =====================
+   PARTICLES (COIN FX)
+===================== */
+function addParticle(x, y) {
+    particles.push({
+        x,
+        y,
+        vy: Math.random() * -2,
+        life: 30
+    });
 }
 
 /* =====================
@@ -196,9 +210,13 @@ function restartGame() {
 function update() {
     if (!gameRunning || paused) return;
 
-    speed = Math.min(14, speed + 0.001);
+    time += 0.01;
+    speed = Math.min(15, speed + 0.001);
 
-    /* player physics */
+    /* animation frame */
+    anim += 0.2;
+
+    /* physics */
     player.y += player.vy;
     player.vy += 0.8;
 
@@ -222,6 +240,7 @@ function update() {
             lives--;
             livesText.innerText = lives;
 
+            addShake();
             obs.splice(i, 1);
 
             if (lives <= 0) gameOver();
@@ -246,36 +265,69 @@ function update() {
         if (d < 35) {
             coins++;
             coinsText.innerText = coins;
+
+            addParticle(c.x, c.y);
+
             coinList.splice(i, 1);
         }
 
-        if (c.y > 700) {
-            coinList.splice(i, 1);
-        }
+        if (c.y > 700) coinList.splice(i, 1);
     }
+
+    /* particles */
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.y += p.vy;
+        p.life--;
+
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    if (shake > 0) shake--;
 }
 
 /* =====================
-   DRAW
+   DRAW (AAA POLISH)
 ===================== */
 function draw() {
-    ctx.clearRect(0, 0, 400, 600);
 
-    /* background */
-    let g = ctx.createLinearGradient(0, 0, 0, 600);
-    g.addColorStop(0, "#4fc3ff");
-    g.addColorStop(1, "#b3e5fc");
-    ctx.fillStyle = g;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (shake > 0) {
+        offsetX = (Math.random() - 0.5) * 10;
+        offsetY = (Math.random() - 0.5) * 10;
+    }
+
+    ctx.save();
+    ctx.translate(offsetX, offsetY);
+
+    /* DAY/NIGHT SKY */
+    let day = Math.sin(time) * 0.5 + 0.5;
+
+    let sky = ctx.createLinearGradient(0, 0, 0, 600);
+    sky.addColorStop(0, `rgb(${80 + day * 80}, ${180 + day * 50}, 255)`);
+    sky.addColorStop(1, "#b3e5fc");
+
+    ctx.fillStyle = sky;
     ctx.fillRect(0, 0, 400, 600);
 
-    /* road */
-    ctx.fillStyle = "#444";
+    /* ROAD */
+    ctx.fillStyle = "#333";
     ctx.fillRect(0, 200, 400, 400);
 
-    /* player */
-    ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
+    /* PLAYER (simple run animation feel) */
+    let bounce = Math.sin(anim) * 2;
 
-    /* obstacles */
+    ctx.drawImage(
+        playerImg,
+        player.x,
+        player.y + bounce,
+        player.w,
+        player.h
+    );
+
+    /* OBSTACLES */
     obs.forEach(o => {
         ctx.drawImage(
             o.t === "train" ? trainImg : barrierImg,
@@ -286,14 +338,24 @@ function draw() {
         );
     });
 
-    /* coins */
+    /* COINS */
     coinList.forEach(c => {
         ctx.drawImage(coinImg, c.x - 15, c.y - 15, 30, 30);
     });
+
+    /* PARTICLES */
+    particles.forEach(p => {
+        ctx.fillStyle = "yellow";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    ctx.restore();
 }
 
 /* =====================
-   LOOP (FIXED)
+   LOOP
 ===================== */
 function loop() {
     requestAnimationFrame(loop);
