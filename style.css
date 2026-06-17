@@ -1,0 +1,26 @@
+body{
+    margin:0;
+    background:#111;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    margin:10px;
+}
+
+canvas{
+    background:#444;
+    border:3px solid white;
+}
+
+.controls{
+    margin-top:10px;
+}
+
+button{
+    padding:15px;
+    font-size:20px;
+    margin:5px;
+}
