@@ -81,7 +81,22 @@ function jump(){
         player.jumping=true;
     }
 }
+function slide(){
 
+    if(player.sliding) return;
+
+    player.sliding = true;
+
+    player.height = player.slideHeight;
+    player.y = 540;
+
+    setTimeout(()=>{
+        player.height = player.normalHeight;
+        player.y = 500;
+        player.sliding = false;
+    },700);
+
+}
 document.addEventListener("keydown",e=>{
     if(e.key==="ArrowLeft") moveLeft();
     if(e.key==="ArrowRight") moveRight();
