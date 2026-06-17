@@ -1,13 +1,29 @@
 body{
     margin:0;
     background:#111;
-    text-align:center;
-    color:white;
     font-family:Arial;
+    color:white;
+    text-align:center;
 }
 
-h1{
-    margin:10px;
+#gameContainer{
+    display:none;
+}
+
+#gameOverScreen{
+    display:none;
+}
+
+#startScreen{
+    margin-top:150px;
+}
+
+button{
+    padding:15px 20px;
+    font-size:20px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
 }
 
 canvas{
@@ -19,8 +35,15 @@ canvas{
     margin-top:10px;
 }
 
-button{
-    padding:15px;
-    font-size:20px;
+.controls button{
+    width:80px;
     margin:5px;
+}
+
+#hud{
+    width:400px;
+    margin:auto;
+    display:flex;
+    justify-content:space-between;
+    padding:10px;
 }
