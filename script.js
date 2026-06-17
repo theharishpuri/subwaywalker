@@ -17,12 +17,11 @@ const coinImg = new Image();
 coinImg.src = "assets/coin.png";
 
 /* =====================
-   SOUNDS
+   SOUND
 ===================== */
-const jumpSound = new Audio("assets/sounds/jump.mp3");
-const coinSound = new Audio("assets/sounds/coin.mp3");
-const hitSound = new Audio("assets/sounds/hit.mp3");
-const gameOverSound = new Audio("assets/sounds/gameover.mp3");
+const bgMusic = new Audio("assets/sounds/bg.mp3");
+bgMusic.loop = true;
+bgMusic.volume = 0.4;
 
 /* =====================
    UI
@@ -43,19 +42,9 @@ let coins = 0;
 let lives = 3;
 
 let speed = 7;
-let roadOffset = 0;
 
 let highScore = localStorage.getItem("highscore") || 0;
 highScoreText.innerText = highScore;
-
-/* =====================
-   POWER UPS
-===================== */
-let magnet = false;
-let magnetTimer = 0;
-
-let shield = false;
-let shieldTimer = 0;
 
 /* =====================
    LANES
@@ -83,10 +72,15 @@ const player = {
 ===================== */
 let obstacles = [];
 let coinList = [];
-let powerups = [];
 
 /* =====================
-   SPAWN FUNCTIONS
+   BACKGROUND
+===================== */
+let bg1 = 0;
+let bg2 = 0;
+
+/* =====================
+   SPAWN
 ===================== */
 function createObstacle() {
     let type = Math.random() < 0.5 ? "train" : "barrier";
@@ -108,17 +102,6 @@ function createCoin() {
     });
 }
 
-function createPowerup() {
-    let type = Math.random() < 0.5 ? "magnet" : "shield";
-
-    powerups.push({
-        type,
-        x: Math.floor(Math.random() * 3) * laneWidth + 55,
-        y: -50,
-        radius: 15
-    });
-}
-
 /* =====================
    INTERVALS
 ===================== */
@@ -129,10 +112,6 @@ setInterval(() => {
 setInterval(() => {
     if (gameRunning) createCoin();
 }, 1200);
-
-setInterval(() => {
-    if (gameRunning) createPowerup();
-}, 8000);
 
 /* =====================
    CONTROLS
@@ -155,7 +134,6 @@ function jump() {
     if (!player.jumping) {
         player.velocityY = -15;
         player.jumping = true;
-        jumpSound.play();
     }
 }
 
@@ -174,34 +152,58 @@ function slide() {
 }
 
 /* =====================
-   KEYBOARD
+   KEYBOARD + SWIPE
 ===================== */
 document.addEventListener("keydown", e => {
-
     if (e.key === "ArrowLeft") moveLeft();
     if (e.key === "ArrowRight") moveRight();
     if (e.key === "ArrowUp") jump();
     if (e.key === "ArrowDown") slide();
+    if (e.key === "p") togglePause();
+});
 
-    if (e.key === "p" || e.key === "P") {
-        paused = !paused;
+/* swipe */
+let startX = 0;
+
+document.addEventListener("touchstart", e => {
+    startX = e.touches[0].clientX;
+});
+
+document.addEventListener("touchend", e => {
+    let diff = e.changedTouches[0].clientX - startX;
+
+    if (Math.abs(diff) > 40) {
+        diff > 0 ? moveRight() : moveLeft();
+    } else {
+        jump();
     }
-
 });
 
 /* =====================
-   START / GAME OVER
+   PAUSE
+===================== */
+function togglePause() {
+    paused = !paused;
+}
+
+/* =====================
+   START GAME
 ===================== */
 document.getElementById("startBtn").onclick = () => {
     document.getElementById("startScreen").style.display = "none";
     document.getElementById("gameContainer").style.display = "block";
     gameRunning = true;
+
+    bgMusic.play();
 };
 
+/* =====================
+   GAME OVER
+===================== */
 function gameOver() {
     gameRunning = false;
 
-    gameOverSound.play();
+    bgMusic.pause();
 
     document.getElementById("gameContainer").style.display = "none";
     document.getElementById("gameOverScreen").style.display = "block";
@@ -221,11 +223,12 @@ function restartGame() {
    UPDATE
 ===================== */
 function update() {
+
     if (!gameRunning || paused) return;
 
     speed += 0.0008;
 
-    /* player physics */
+    /* physics */
     player.y += player.velocityY;
     player.velocityY += 0.8;
 
@@ -235,20 +238,8 @@ function update() {
         player.jumping = false;
     }
 
-    /* magnets/shield timers */
-    if (magnet) {
-        magnetTimer--;
-        if (magnetTimer <= 0) magnet = false;
-    }
-
-    if (shield) {
-        shieldTimer--;
-        if (shieldTimer <= 0) shield = false;
-    }
-
     /* obstacles */
     obstacles.forEach(obs => {
-
         obs.y += speed;
 
         if (
@@ -257,18 +248,12 @@ function update() {
             player.y < obs.y + obs.height &&
             player.y + player.height > obs.y
         ) {
+            lives--;
+            livesText.innerText = lives;
 
-            if (shield) {
-                hitSound.play();
-                obs.y = 700;
-            } else {
-                lives--;
-                livesText.innerText = lives;
-                hitSound.play();
-                obs.y = 700;
+            obs.y = 700;
 
-                if (lives <= 0) gameOver();
-            }
+            if (lives <= 0) gameOver();
         }
 
         if (obs.y > 650) {
@@ -279,48 +264,16 @@ function update() {
 
     /* coins */
     coinList.forEach(c => {
-
         c.y += speed;
 
         let dx = (player.x + 25) - c.x;
         let dy = (player.y + 40) - c.y;
         let dist = Math.sqrt(dx * dx + dy * dy);
 
-        if (magnet && dist < 200) {
-            c.x += (player.x - c.x) * 0.1;
-            c.y += (player.y - c.y) * 0.1;
-        }
-
         if (dist < 40) {
             coins++;
             coinsText.innerText = coins;
-            coinSound.play();
             c.y = 700;
-        }
-    });
-
-    /* powerups */
-    powerups.forEach(p => {
-
-        p.y += speed;
-
-        let dx = (player.x + 25) - p.x;
-        let dy = (player.y + 40) - p.y;
-        let dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist < 40) {
-
-            if (p.type === "magnet") {
-                magnet = true;
-                magnetTimer = 500;
-            }
-
-            if (p.type === "shield") {
-                shield = true;
-                shieldTimer = 500;
-            }
-
-            p.y = 700;
         }
     });
 }
@@ -332,16 +285,29 @@ function draw() {
 
     ctx.clearRect(0, 0, 400, 600);
 
-    roadOffset += speed;
+    /* parallax bg */
+    bg1 -= speed * 0.2;
+    bg2 -= speed * 0.5;
 
-    /* sky */
-    ctx.fillStyle = "#64c8ff";
-    ctx.fillRect(0, 0, 400, 200);
+    let grad = ctx.createLinearGradient(0, 0, 0, 600);
+    grad.addColorStop(0, "#4fc3ff");
+    grad.addColorStop(1, "#b3e5fc");
 
-    /* buildings */
-    ctx.fillStyle = "#555";
-    for (let i = 0; i < 5; i++) {
-        ctx.fillRect(i * 80, 100, 60, 150);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 400, 600);
+
+    /* buildings layer 1 */
+    ctx.fillStyle = "#455a64";
+    for (let i = 0; i < 6; i++) {
+        let x = (i * 90 + bg1) % 500;
+        ctx.fillRect(x, 120, 60, 200);
+    }
+
+    /* buildings layer 2 */
+    ctx.fillStyle = "#263238";
+    for (let i = 0; i < 6; i++) {
+        let x = (i * 120 + bg2) % 600;
+        ctx.fillRect(x, 150, 80, 250);
     }
 
     /* road */
@@ -353,15 +319,14 @@ function draw() {
     ctx.lineWidth = 4;
 
     for (let y = -40; y < 600; y += 60) {
-
         ctx.beginPath();
-        ctx.moveTo(130, y + (roadOffset % 60));
-        ctx.lineTo(130, y + 30 + (roadOffset % 60));
+        ctx.moveTo(130, y);
+        ctx.lineTo(130, y + 30);
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(260, y + (roadOffset % 60));
-        ctx.lineTo(260, y + 30 + (roadOffset % 60));
+        ctx.moveTo(260, y);
+        ctx.lineTo(260, y + 30);
         ctx.stroke();
     }
 
@@ -381,23 +346,16 @@ function draw() {
     coinList.forEach(c => {
         ctx.drawImage(coinImg, c.x - 15, c.y - 15, 30, 30);
     });
-
-    /* powerups */
-    powerups.forEach(p => {
-        ctx.fillStyle = p.type === "magnet" ? "purple" : "blue";
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fill();
-    });
 }
 
 /* =====================
    LOOP
 ===================== */
 function loop() {
+    requestAnimationFrame(loop);
+    if (!gameRunning || paused) return;
     update();
     draw();
-    requestAnimationFrame(loop);
 }
 
 loop();
