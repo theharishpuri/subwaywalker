@@ -1,3 +1,7 @@
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+// Images
 const playerImg = new Image();
 playerImg.src = "assets/player.png";
 
@@ -9,263 +13,362 @@ barrierImg.src = "assets/barrier.png";
 
 const coinImg = new Image();
 coinImg.src = "assets/coin.png";
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-let speed = 7;
-let roadOffset = 0;
-let lives = 3;
 
-const livesText = document.getElementById("lives");
-
-player.sliding = false;
-player.normalHeight = 80;
-player.slideHeight = 40;
+// HUD
 const scoreText = document.getElementById("score");
 const coinsText = document.getElementById("coins");
 const highScoreText = document.getElementById("highScore");
+const livesText = document.getElementById("lives");
+
+// Variables
+let score = 0;
+let coins = 0;
+let lives = 3;
+let speed = 7;
+let roadOffset = 0;
+let gameRunning = false;
 
 let highScore = localStorage.getItem("highscore") || 0;
 highScoreText.innerText = highScore;
 
-let gameRunning = false;
-
+// Lanes
 const laneWidth = 130;
 let lane = 1;
 
-let score = 0;
-let coins = 0;
-
+// Player
 const player = {
     x: laneWidth + 40,
     y: 500,
     width: 50,
     height: 80,
     velocityY: 0,
-    jumping: false
+    jumping: false,
+
+    sliding: false,
+    normalHeight: 80,
+    slideHeight: 40
 };
 
+// Arrays
 let obstacles = [];
 let coinList = [];
 
-function createObstacle(){
+// Create obstacle
+function createObstacle() {
 
-    let type = Math.random()<0.5 ? "train" : "barrier";
+    let type = Math.random() < 0.5 ? "train" : "barrier";
 
     obstacles.push({
-        type:type,
-        x:Math.floor(Math.random()*3)*laneWidth+40,
-        y:-120,
-        width:70,
-        height:type==="train" ? 140 : 80
+        type: type,
+        x: Math.floor(Math.random() * 3) * laneWidth + 40,
+        y: -120,
+        width: 70,
+        height: type === "train" ? 140 : 80
     });
 
 }
 
-function createCoin(){
+// Create coin
+function createCoin() {
+
     coinList.push({
-        x: Math.floor(Math.random()*3)*laneWidth+55,
-        y:-50,
-        radius:15
+        x: Math.floor(Math.random() * 3) * laneWidth + 55,
+        y: -50,
+        radius: 15
     });
+
 }
 
-setInterval(()=>{
-    if(gameRunning) createObstacle();
-},1500);
+// Spawn objects
+setInterval(() => {
+    if (gameRunning) createObstacle();
+}, 1500);
 
-setInterval(()=>{
-    if(gameRunning) createCoin();
-},1200);
+setInterval(() => {
+    if (gameRunning) createCoin();
+}, 1200);
 
-function moveLeft(){
-    if(lane>0){
+// Controls
+function moveLeft() {
+
+    if (lane > 0) {
         lane--;
-        player.x=lane*laneWidth+40;
+        player.x = lane * laneWidth + 40;
     }
+
 }
 
-function moveRight(){
-    if(lane<2){
+function moveRight() {
+
+    if (lane < 2) {
         lane++;
-        player.x=lane*laneWidth+40;
+        player.x = lane * laneWidth + 40;
     }
+
 }
 
-function jump(){
-    if(!player.jumping){
-        player.velocityY=-15;
-        player.jumping=true;
-    }
-}
-function slide(){
+function jump() {
 
-    if(player.sliding) return;
+    if (!player.jumping) {
+
+        player.velocityY = -15;
+        player.jumping = true;
+
+    }
+
+}
+
+function slide() {
+
+    if (player.sliding) return;
 
     player.sliding = true;
 
     player.height = player.slideHeight;
     player.y = 540;
 
-    setTimeout(()=>{
+    setTimeout(() => {
+
         player.height = player.normalHeight;
         player.y = 500;
         player.sliding = false;
-    },700);
+
+    }, 700);
 
 }
-document.addEventListener("keydown",e=>{
-    if(e.key==="ArrowLeft") moveLeft();
-    if(e.key==="ArrowRight") moveRight();
-    if(e.key==="ArrowUp") jump();
-if(e.key==="ArrowDown") slide();
+
+// Keyboard
+document.addEventListener("keydown", e => {
+
+    if (e.key === "ArrowLeft") moveLeft();
+
+    if (e.key === "ArrowRight") moveRight();
+
+    if (e.key === "ArrowUp") jump();
+
+    if (e.key === "ArrowDown") slide();
+
 });
 
-function gameOver(){
+// Game Over
+function gameOver() {
 
-    gameRunning=false;
+    gameRunning = false;
 
-    document.getElementById("gameContainer").style.display="none";
-    document.getElementById("gameOverScreen").style.display="block";
+    document.getElementById("gameContainer").style.display = "none";
 
-    document.getElementById("finalScore").innerText=score;
+    document.getElementById("gameOverScreen").style.display = "block";
 
-    if(score>highScore){
-        localStorage.setItem("highscore",score);
+    document.getElementById("finalScore").innerText = score;
+
+    if (score > highScore) {
+
+        localStorage.setItem("highscore", score);
+
     }
+
 }
 
-function restartGame(){
+// Restart
+function restartGame() {
+
     location.reload();
+
 }
 
-document.getElementById("startBtn").onclick=()=>{
-    document.getElementById("startScreen").style.display="none";
-    document.getElementById("gameContainer").style.display="block";
-    gameRunning=true;
+// Start button
+document.getElementById("startBtn").onclick = () => {
+
+    document.getElementById("startScreen").style.display = "none";
+
+    document.getElementById("gameContainer").style.display = "block";
+
+    gameRunning = true;
+
 };
+function update() {
 
-function update(){
+    if (!gameRunning) return;
 
-    if(!gameRunning) return;
+    speed += 0.0008;
 
-    player.y+=player.velocityY;
-    player.velocityY+=0.8;
+    // Jump physics
+    player.y += player.velocityY;
+    player.velocityY += 0.8;
 
-    if(player.y>=500){
-        player.y=500;
-        player.velocityY=0;
-        player.jumping=false;
-    }
+    if (player.y >= 500 && !player.sliding) {
 
-obstacles.forEach(obs=>{
-
-    if(obs.type==="train"){
-        ctx.drawImage(
-            trainImg,
-            obs.x,
-            obs.y,
-            obs.width,
-            obs.height
-        );
-    }
-    else{
-
-        ctx.drawImage(
-            barrierImg,
-            obs.x,
-            obs.y,
-            obs.width,
-            obs.height
-        );
+        player.y = 500;
+        player.velocityY = 0;
+        player.jumping = false;
 
     }
 
-});
+    // Obstacles
+    obstacles.forEach(obs => {
 
-    coinList.forEach(c=>{
+        obs.y += speed;
 
-     c.y += speed;
+        // Collision
+        if (
+            player.x < obs.x + obs.width &&
+            player.x + player.width > obs.x &&
+            player.y < obs.y + obs.height &&
+            player.y + player.height > obs.y
+        ) {
 
-        let dx=(player.x+25)-c.x;
-        let dy=(player.y+40)-c.y;
+            lives--;
+            livesText.innerText = lives;
 
-        if(Math.sqrt(dx*dx+dy*dy)<40){
-            coins++;
-            coinsText.innerText=coins;
-            c.y=700;
+            obs.y = 700;
+
+            if (lives <= 0) {
+
+                gameOver();
+
+            }
+
         }
+
+        // Score
+        if (obs.y > 650) {
+
+            score++;
+            scoreText.innerText = score;
+
+        }
+
     });
+
+    // Coins
+    coinList.forEach(c => {
+
+        c.y += speed;
+
+        let dx = (player.x + 25) - c.x;
+        let dy = (player.y + 40) - c.y;
+
+        if (Math.sqrt(dx * dx + dy * dy) < 40) {
+
+            coins++;
+
+            coinsText.innerText = coins;
+
+            c.y = 700;
+
+        }
+
+    });
+
 }
 
-function draw(){
-roadOffset += speed;
-ctx.fillStyle="#64c8ff";
-ctx.fillRect(0,0,400,200);
 
-ctx.fillStyle="#888";
-ctx.fillRect(0,200,400,400);
-ctx.fillStyle = "#444";
-ctx.fillRect(0,0,400,600);
+function draw() {
 
-ctx.strokeStyle = "white";
-ctx.lineWidth = 4;
-for(let i=0;i<5;i++){
+    ctx.clearRect(0, 0, 400, 600);
 
-    ctx.fillStyle="#555";
+    roadOffset += speed;
 
-    ctx.fillRect(
-        i*80,
-        100,
-        60,
-        100+Math.random()*50
+    // Sky
+    ctx.fillStyle = "#64c8ff";
+    ctx.fillRect(0, 0, 400, 200);
+
+    // Buildings
+    ctx.fillStyle = "#555";
+
+    for (let i = 0; i < 5; i++) {
+
+        ctx.fillRect(
+            i * 80,
+            100,
+            60,
+            150
+        );
+
+    }
+
+    // Road
+    ctx.fillStyle = "#444";
+    ctx.fillRect(0, 200, 400, 400);
+
+    // Lane lines
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 4;
+
+    for (let y = -40; y < 600; y += 60) {
+
+        ctx.beginPath();
+        ctx.moveTo(130, y + (roadOffset % 60));
+        ctx.lineTo(130, y + 30 + (roadOffset % 60));
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(260, y + (roadOffset % 60));
+        ctx.lineTo(260, y + 30 + (roadOffset % 60));
+        ctx.stroke();
+
+    }
+
+    // Player
+    ctx.drawImage(
+        playerImg,
+        player.x,
+        player.y,
+        player.width,
+        player.height
     );
 
-}
-for(let y=-40; y<600; y+=60){
+    // Obstacles
+    obstacles.forEach(obs => {
 
-    ctx.beginPath();
-    ctx.moveTo(130,y+(roadOffset%60));
-    ctx.lineTo(130,y+30+(roadOffset%60));
-    ctx.stroke();
+        if (obs.type === "train") {
 
-    ctx.beginPath();
-    ctx.moveTo(260,y+(roadOffset%60));
-    ctx.lineTo(260,y+30+(roadOffset%60));
-    ctx.stroke();
+            ctx.drawImage(
+                trainImg,
+                obs.x,
+                obs.y,
+                obs.width,
+                obs.height
+            );
 
-}
-    ctx.clearRect(0,0,400,600);
+        } else {
 
-    ctx.fillStyle="#666";
-    ctx.fillRect(130,0,3,600);
-    ctx.fillRect(260,0,3,600);
+            ctx.drawImage(
+                barrierImg,
+                obs.x,
+                obs.y,
+                obs.width,
+                obs.height
+            );
 
-    ctx.drawImage(
-    playerImg,
-    player.x,
-    player.y,
-    player.width,
-    player.height
-);
+        }
 
-    ctx.fillStyle="red";
-    obstacles.forEach(obs=>{
-        ctx.fillRect(obs.x,obs.y,50,80);
     });
 
-    ctx.fillStyle="gold";
+    // Coins
+    coinList.forEach(c => {
 
-    coinList.forEach(c=>{
-        ctx.beginPath();
-        ctx.arc(c.x,c.y,c.radius,0,Math.PI*2);
-        ctx.fill();
+        ctx.drawImage(
+            coinImg,
+            c.x - 15,
+            c.y - 15,
+            30,
+            30
+        );
+
     });
+
 }
 
-function loop(){
+
+function loop() {
+
     update();
+
     draw();
+
     requestAnimationFrame(loop);
+
 }
 
 loop();
