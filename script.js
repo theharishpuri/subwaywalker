@@ -1,6 +1,14 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+let speed = 7;
+let roadOffset = 0;
+let lives = 3;
 
+const livesText = document.getElementById("lives");
+
+player.sliding = false;
+player.normalHeight = 80;
+player.slideHeight = 40;
 const scoreText = document.getElementById("score");
 const coinsText = document.getElementById("coins");
 const highScoreText = document.getElementById("highScore");
