@@ -1,44 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>HP Subway Run</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>HP Subway Run</title>
+
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
 </head>
+
 <body>
 
+<!-- MENU -->
 <div id="startScreen">
-    <h1>🏃 HP Subway Run</h1>
-    <button id="startBtn">Start Game</button>
+    <h1>HP Subway Run</h1>
+    <button id="startBtn">Play</button>
 </div>
 
-<div id="gameContainer">
-
-   <div id="hud">
+<!-- HUD -->
+<div id="hud">
     <span>Score: <span id="score">0</span></span>
     <span>Coins: <span id="coins">0</span></span>
     <span>Lives: <span id="lives">3</span></span>
-    <span>High Score: <span id="highScore">0</span></span>
+    <span>High: <span id="highScore">0</span></span>
 </div>
 
-    <canvas id="gameCanvas" width="400" height="600"></canvas>
+<!-- GAME -->
+<canvas id="gameCanvas" width="400" height="600"></canvas>
 
- <div class="controls">
+<!-- CONTROLS -->
+<div class="controls">
     <button onclick="moveLeft()">⬅</button>
     <button onclick="jump()">⬆</button>
     <button onclick="slide()">⬇</button>
     <button onclick="moveRight()">➡</button>
 </div>
 
-
+<!-- GAME OVER -->
 <div id="gameOverScreen">
     <h1>Game Over</h1>
-    <h2>Your Score: <span id="finalScore"></span></h2>
-
-    <button onclick="restartGame()">Play Again</button>
+    <p>Score: <span id="finalScore"></span></p>
+    <button onclick="restartGame()">Restart</button>
 </div>
 
 <script src="script.js"></script>
+<script src="sw.js"></script>
 
 </body>
 </html>
