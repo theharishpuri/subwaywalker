@@ -48,12 +48,17 @@ let obstacles = [];
 let coinList = [];
 
 function createObstacle(){
+
+    let type = Math.random()<0.5 ? "train" : "barrier";
+
     obstacles.push({
-        x: Math.floor(Math.random()*3)*laneWidth+40,
-        y:-100,
-        width:50,
-        height:80
+        type:type,
+        x:Math.floor(Math.random()*3)*laneWidth+40,
+        y:-120,
+        width:70,
+        height:type==="train" ? 140 : 80
     });
+
 }
 
 function createCoin(){
@@ -152,31 +157,30 @@ function update(){
         player.jumping=false;
     }
 
-    obstacles.forEach(obs=>{
+obstacles.forEach(obs=>{
 
-       obs.y += speed;
+    if(obs.type==="train"){
+        ctx.drawImage(
+            trainImg,
+            obs.x,
+            obs.y,
+            obs.width,
+            obs.height
+        );
+    }
+    else{
 
-        if(
-            player.x<obs.x+obs.width &&
-            player.x+player.width>obs.x &&
-            player.y<obs.y+obs.height &&
-            player.y+player.height>obs.y
-        ){
-           lives--;
-livesText.innerText = lives;
+        ctx.drawImage(
+            barrierImg,
+            obs.x,
+            obs.y,
+            obs.width,
+            obs.height
+        );
 
-obs.y = 700;
+    }
 
-if(lives <= 0){
-    gameOver();
-}
-        }
-
-        if(obs.y>600){
-            score++;
-            scoreText.innerText=score;
-        }
-    });
+});
 
     coinList.forEach(c=>{
 
@@ -195,13 +199,28 @@ if(lives <= 0){
 
 function draw(){
 roadOffset += speed;
+ctx.fillStyle="#64c8ff";
+ctx.fillRect(0,0,400,200);
 
+ctx.fillStyle="#888";
+ctx.fillRect(0,200,400,400);
 ctx.fillStyle = "#444";
 ctx.fillRect(0,0,400,600);
 
 ctx.strokeStyle = "white";
 ctx.lineWidth = 4;
+for(let i=0;i<5;i++){
 
+    ctx.fillStyle="#555";
+
+    ctx.fillRect(
+        i*80,
+        100,
+        60,
+        100+Math.random()*50
+    );
+
+}
 for(let y=-40; y<600; y+=60){
 
     ctx.beginPath();
@@ -221,8 +240,13 @@ for(let y=-40; y<600; y+=60){
     ctx.fillRect(130,0,3,600);
     ctx.fillRect(260,0,3,600);
 
-    ctx.fillStyle="cyan";
-    ctx.fillRect(player.x,player.y,50,80);
+    ctx.drawImage(
+    playerImg,
+    player.x,
+    player.y,
+    player.width,
+    player.height
+);
 
     ctx.fillStyle="red";
     obstacles.forEach(obs=>{
