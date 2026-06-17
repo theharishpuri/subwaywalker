@@ -101,6 +101,7 @@ document.addEventListener("keydown",e=>{
     if(e.key==="ArrowLeft") moveLeft();
     if(e.key==="ArrowRight") moveRight();
     if(e.key==="ArrowUp") jump();
+if(e.key==="ArrowDown") slide();
 });
 
 function gameOver(){
